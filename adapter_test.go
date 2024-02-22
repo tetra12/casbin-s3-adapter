@@ -46,16 +46,25 @@ func Test_s3(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Run("LoadPolicy - read success", func(t *testing.T) {
+	t.Run("Adapter - load policy", func(t *testing.T) {
+		err := adapter.LoadPolicy(model)
+		if err != nil {
+			t.Error(err)
+		}
+		if model.GetValuesForFieldInPolicy("p", "p", 0)[0] != "alice" {
+			t.Fatal("Policy wasn't loaded properly")
+		}
+	})
+
+	t.Run("Enforcer - read success", func(t *testing.T) {
 		ok, err := e.Enforce(sub, obj, act)
 		if err != nil {
 			t.Error(err)
 		}
 		assert.True(t, ok)
 	})
-	t.Run("LoadPolicy - write fail", func(t *testing.T) {
+	t.Run("Enforcer - write fail", func(t *testing.T) {
 		act = "write"
-
 		ok, err := e.Enforce(sub, obj, act)
 		if err != nil {
 			t.Error(err)
@@ -71,6 +80,11 @@ func Test_s3(t *testing.T) {
 		}
 
 		adapter, err := s3_adapter.NewAdapter(conf)
+		if err != nil {
+			t.Error(err)
+		}
+
+		err = adapter.LoadPolicy(model)
 		if err != nil {
 			t.Error(err)
 		}
